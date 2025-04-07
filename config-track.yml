@@ -29,7 +29,7 @@ music_format:
   subtitle: null
   comments: null
   artist: "{song.artist}"
-  album_artist: "Rayark"
+  album_artist: "Rayark - Ripped by Schryzon"
   album: "Cytus II Original Soundtrack"
   year: null
   number: "{song.number}"

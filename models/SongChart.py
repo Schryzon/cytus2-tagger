@@ -3,7 +3,8 @@ from typing import Optional
 
 class SongChartDifficulty:
     def __init__(self, data, name):
-        self.level = int(data['Level'])
+        #exceptions = ['α', 'β', 'γ']
+        self.level = data['Level']
         self.has_separate_file = data['MusicID'] != ''
         self.is_unlock_needed: bool = data['NeedUnlock']
         self.music_id = data['MusicID']
@@ -22,9 +23,12 @@ class SongChart:
         self.hard: SongChartDifficulty = None
         self.chaos: SongChartDifficulty = None
         self.glitch: Optional[SongChartDifficulty] = None
+        self.crash: Optional[SongChartDifficulty] = None
+        self.drop: Optional[SongChartDifficulty] = None
+        self.dream: Optional[SongChartDifficulty] = None
 
         self.difficulties = list(map(str.lower, data.keys()))
-        self.difficulties.sort(key=['easy', 'hard', 'chaos', 'glitch'].index)
+        self.difficulties.sort(key=['easy', 'hard', 'chaos', 'glitch', 'crash', 'drop', 'dream'].index)
         for difficulty, data in data.items():
             setattr(self, difficulty.lower(), SongChartDifficulty(data, difficulty))
 

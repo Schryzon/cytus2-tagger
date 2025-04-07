@@ -60,7 +60,7 @@ def pull_files(tmp):
     asset_bundles = None
 
     for package in adb('shell', 'pm', 'list', 'packages', '-f'):
-        if package.startswith('package:/data/app/com.rayark.cytus2'):
+        if 'com.rayark.cytus2' in package: # Sometimes doesn't work with .startswith()
             apk = package[8:-18]
             print('Found apk at', apk)
             break

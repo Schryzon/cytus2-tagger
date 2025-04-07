@@ -87,7 +87,7 @@ if __name__ == '__main__':
             special_files.append((special_file['intro'], folder_name))
 
 
-    music_wavs = {}
+    music_oggs = {}
     music_thumbnails = {}
     song_pack_data = None
     expansion_pack_data = None
@@ -116,22 +116,22 @@ if __name__ == '__main__':
             found = True
             with open(file, 'r', encoding='utf8') as f:
                 expansion_pack_data = json.load(f)
-        elif base_dir_name != 'previews' and re.match(r'[a-z]{2,8}00\d(?:_\d{3})?(?:_\d)?\.wav$', file_name,
+        elif base_dir_name != 'previews' and re.match(r'[a-z]{2,8}00\d(?:_\d{3})?(?:_\d)?\.ogg$', file_name,
                                                       re.IGNORECASE):
             found = True
-            music_wavs[file_name] = file
+            music_oggs[file_name] = file
         elif base_dir_name == 'unlocksongcovers' and re.match(r'[a-z]{2,8}00\d_\d{3}(?:_\d)?\.png$', file_name,
                                                               re.IGNORECASE):
             found = True
             music_thumbnails[file_name] = file
-        elif file_extension == '.wav':
+        elif file_extension == '.ogg':
             special_file = find(special_files, lambda f: special_file_filterer(f, file_base_name, base_dir_name))
 
             if special_file:
                 found = True
                 special_file_name, special_dir_name = special_file
                 key = special_file_name if not special_dir_name else f'{special_dir_name}/{special_file_name}'
-                music_wavs[key] = file
+                music_oggs[key] = file
 
         if found:
             print('Found', file_name)
@@ -204,8 +204,11 @@ if __name__ == '__main__':
                 if character.id in character_album_art:
                     album_art = character_album_art[character.id]
 
-                submit_task(format, locals(), music_wavs[character.id + '.wav'], album_art,
+                try:
+                    submit_task(format, locals(), music_oggs[character.id + '.ogg'], album_art,
                             extra_args_before=['-stream_loop', str(format['loops'])])
+                except:
+                    pass
 
             for song in character.songs:
                 format = config['music_format']
@@ -217,21 +220,21 @@ if __name__ == '__main__':
                     album_art = music_thumbnails[song.id + '.png']
 
                 if format['enabled']:
-                    if song.id + '.wav' in music_wavs:
-                        submit_task(format, locals(), music_wavs[song.id + '.wav'], album_art)
+                    if song.id + '.ogg' in music_oggs:
+                        submit_task(format, locals(), music_oggs[song.id + '.ogg'], album_art)
                     else:
                         skipped.append(f'{song.name} ({song.id} not found)')
-                        print('skipping', song.id, song.name, f'({song.id}.wav not found)')
+                        print('skipping', song.id, song.name, f'({song.id}.ogg not found)')
 
                 for difficulty in song.separate_difficulties:
                     format = config['music_format_separate_difficulty']
 
                     if format['enabled']:
-                        if difficulty.music_id + '.wav' in music_wavs:
-                            submit_task(format, locals(), music_wavs[difficulty.music_id + '.wav'], album_art)
+                        if difficulty.music_id + '.ogg' in music_oggs:
+                            submit_task(format, locals(), music_oggs[difficulty.music_id + '.ogg'], album_art)
                         else:
                             skipped.append(f'{song.name} - {difficulty.name} ({difficulty.music_id} not found)')
-                            print('skipping', difficulty.music_id, song.name, f'({difficulty.music_id}.wav not found)')
+                            print('skipping', difficulty.music_id, song.name, f'({difficulty.music_id}.ogg not found)')
 
         for format in config['special_files']:
             if not format['enabled']:
@@ -243,16 +246,19 @@ if __name__ == '__main__':
             extra_args_after = []
 
             if 'intro' in format:
-                extra_args_before.extend(['-i', music_wavs[prefix + format['intro']]])
+                extra_args_before.extend(['-i', music_oggs[prefix + format['intro']]])
                 extra_args_after.extend(['-filter_complex', '[0:0][1:0]concat=n=2:v=0:a=1[out]', '-map', '[out]'])
 
             if 'loops' in format:
                 extra_args_before.extend(['-stream_loop', str(format['loops'])])
 
-            submit_task(format, locals(), music_wavs[prefix + format['input_filename']],
+            try:
+                submit_task(format, locals(), music_oggs[prefix + format['input_filename']],
                         music_thumbnails[format['album_art_name']] if 'album_art_name' in format
                                                                       and format['album_art_name'] else None,
                         extra_args_before=extra_args_before, extra_args_after=extra_args_after)
+            except:
+                pass
 
         def stop():
             executor.shutdown(wait=False)
